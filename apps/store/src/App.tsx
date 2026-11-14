@@ -14,19 +14,20 @@ function stored<T>(key: string, fallback: T): T {
 }
 
 function StoreBagLogo({ className = '', compact = false }: { className?: string; compact?: boolean }) {
-  return <svg className={className} viewBox="0 0 240 260" role="img" aria-label="Celeris Store">
-    <path className="bag-handle" d="M66 91V65C66 29 86 10 120 10s54 19 54 55v26" fill="none" strokeWidth="13" strokeLinecap="round"/>
-    <path className="bag-body" d="M42 82h156c12 0 21 9 22 21l10 125c1 14-9 24-23 24H33c-14 0-24-10-23-24l10-125c1-12 10-21 22-21Z"/>
-    <circle className="bag-handle" cx="66" cy="91" r="12" strokeWidth="8"/>
-    <circle className="bag-handle" cx="174" cy="91" r="12" strokeWidth="8"/>
+  return <svg className={className} viewBox="0 0 320 340" role="img" aria-label="Celeris Store" xmlns="http://www.w3.org/2000/svg">
+    <path className="bag-handle" d="M92 118V76C92 29 116 9 160 9s68 20 68 67v42" fill="none" strokeWidth="17" strokeLinecap="round"/>
+    <path className="bag-body" d="M67 105h186c17 0 29 12 31 29l19 168c2 17-10 29-27 29H44c-17 0-29-12-27-29l19-168c2-17 14-29 31-29Z"/>
+    <circle className="bag-handle" cx="92" cy="118" r="13" strokeWidth="10"/>
+    <circle className="bag-handle" cx="228" cy="118" r="13" strokeWidth="10"/>
     <g className="bag-logo">
-      <circle cx="120" cy="128" r="18"/>
-      <path d="M83 165 119 137l36 28h-25l-11-9-13 9Z"/>
-      <path d="M69 177q51-23 102 0l-9 7q-42-17-84 0Z"/>
-      <path d="M69 190q51-17 102 0l-4 5q-47-13-94 0Z"/>
+      <circle cx="160" cy="157" r="27"/>
+      <path d="M84 215 158 157l75 58h-48l-26-21-29 21Z"/>
+      <path d="m111 215 49-39 49 39h-32l-17-14-19 14Z"/>
+      <path d="M56 236Q160 184 264 236l-19 12q-85-39-170 0Z"/>
+      <path d="M56 258Q160 219 264 258l-12 8q-92-30-184 0Z"/>
       {!compact && <>
-        <text x="120" y="218" textAnchor="middle" className="bag-wordmark">CELERIS</text>
-        <text x="120" y="235" textAnchor="middle" className="bag-submark">S T O R E</text>
+        <text x="160" y="294" textAnchor="middle" className="bag-wordmark">CELERIS</text>
+        <text x="160" y="315" textAnchor="middle" className="bag-submark">S T O R E</text>
       </>}
     </g>
   </svg>;
