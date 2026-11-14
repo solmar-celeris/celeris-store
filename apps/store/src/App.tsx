@@ -173,7 +173,7 @@ export default function App() {
         <div className="featured-grid">{featuredProducts.map(p=>{const vs=p.store_product_variants||[];const v=vs.find(x=>x.id===selectedVariants[p.id])||vs[0];return <article className="featured-card" key={p.id}><div className="featured-image">{(v?.image_url||p.image_url)?<img src={v?.image_url||p.image_url||''} alt={p.name}/>:<div className="product-placeholder"><small>CELERIS</small></div>}</div><div className="featured-card-info"><span>DESTAQUE</span><h3>{p.name}</h3><strong>{money(Number(v?.price??p.price))}</strong><button onClick={()=>add(p,v)}>Adicionar ao carrinho</button></div></article>})}</div>
       </section>}
 
-      <section className="category-showcase"><div className="showcase-heading"><div><p className="eyebrow">EXPLORE A CELERIS</p><h2>Compre por <em>categoria</em></h2></div><a href="#loja">Ver todas →</a></div><div className="showcase-categories">{categories.map((c,i)=><button key={c.id} className="showcase-category" onClick={()=>{setCategory(c.id);document.getElementById("loja")?.scrollIntoView({behavior:"smooth"});}}><span className={"category-art category-art-"+(i%4)}>{["✦","◈","⌘","▣"][i%4]}</span><strong>{c.name}</strong><small>Explorar produtos →</small></button>)}</div></section>
+      
 
       <section className="catalog-section" id="loja">
         <div className="section-heading"><div><p className="eyebrow">NOSSA VITRINE</p><h2>Produtos <em>para você.</em></h2></div><span className="result-count">{loading ? 'Carregando catálogo…' : `${visible.length} produtos`}</span></div>
