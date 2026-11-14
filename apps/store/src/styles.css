@@ -14,3 +14,7 @@
 /* Celeris Store bag: monochrome contrast adapts to the page theme. */
 :root:not([data-theme="dark"]) .brand-mark,:root:not([data-theme="dark"]) .hero-bag-logo,:root:not([data-theme="dark"]) .banner-mark svg{--bag-fill:#050505;--logo-fill:#fff}
 :root[data-theme="dark"] .brand-mark,:root[data-theme="dark"] .hero-bag-logo,:root[data-theme="dark"] .banner-mark svg{--bag-fill:#fff;--logo-fill:#050505}
+
+/* Official Celeris Store artwork: preserve the supplied logo; invert only for dark mode. */
+.brand-mark .bag-logo-image,.hero-bag-logo .bag-logo-image{filter:none}
+:root[data-theme="dark"] .brand-mark .bag-logo-image,:root[data-theme="dark"] .hero-bag-logo .bag-logo-image{filter:invert(1)}
