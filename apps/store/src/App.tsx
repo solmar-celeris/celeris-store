@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { supabase } from '@celeris/supabase-client';
 
@@ -42,6 +42,12 @@ export default function App() {
   const [accountPassword, setAccountPassword] = useState('');
   const [accountMessage, setAccountMessage] = useState('');
   const [accountError, setAccountError] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInput = useRef<HTMLInputElement>(null);
+  const customerName = customerSession?.user?.user_metadata?.full_name || customerSession?.user?.email?.split('@')[0] || 'Cliente';
+  const customerAvatar = customerSession?.user?.user_metadata?.avatar_url as string | undefined;
+  const customerInitial = String(customerName).trim().charAt(0).toLocaleUpperCase('pt-BR') || 'C';
 
   useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem('celeris-store-theme', JSON.stringify(theme)); }, [theme]);
   useEffect(() => { localStorage.setItem('celeris-store-cart', JSON.stringify(cart)); }, [cart]);
@@ -118,8 +124,25 @@ export default function App() {
       ? await supabase.auth.signUp({ email: accountEmail, password: accountPassword, options: { data: { full_name: accountName } } })
       : await supabase.auth.signInWithPassword({ email: accountEmail, password: accountPassword });
     if (result.error) setAccountError(result.error.message);
-    else if (accountMode === 'signup' && !result.data.session) setAccountMessage('Cadastro realizado. Verifique seu e-mail para confirmar a conta.');
+    else if (accountMode === 'signup' && !result.data.session) setAccountMessage('Cadastro criado. Para entrar imediatamente, desative a confirmação de e-mail em Supabase → Authentication → Providers → Email → Confirm email.');
     else { setAccountMessage('Login realizado com sucesso.'); setAccountOpen(false); setAccountPassword(''); }
+  }
+
+  async function uploadCustomerAvatar(file?: File) {
+    if (!file || !supabase || !customerSession?.user) return;
+    if (!file.type.startsWith('image/')) { setAccountError('Selecione um arquivo de imagem.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setAccountError('A imagem deve ter no máximo 5 MB.'); return; }
+    setAvatarUploading(true); setAccountError('');
+    const userId = customerSession.user.id;
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = `${userId}/avatar-${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) { setAccountError(uploadError.message); setAvatarUploading(false); return; }
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+    const { error: updateError } = await supabase.auth.updateUser({ data: { avatar_url: data.publicUrl } });
+    if (updateError) setAccountError(updateError.message);
+    else { const { data: sessionData } = await supabase.auth.getSession(); setCustomerSession(sessionData.session); setProfileOpen(false); }
+    setAvatarUploading(false);
   }
 
   function quantity(id: string, delta: number) {
@@ -132,7 +155,7 @@ export default function App() {
       <nav className="desktop-nav"><a className="active" href="#loja">Loja</a><a href="#categorias">Categorias</a><a href="#sobre">Sobre a Celeris</a><a className="restricted-link" href="https://celeris-business.pages.dev/" target="_blank" rel="noreferrer">Área restrita ↗</a></nav>
       <div className="header-actions">
         <a className="restricted-mobile-link" href="https://celeris-business.pages.dev/" target="_blank" rel="noreferrer">Área restrita</a>
-        <button className="customer-login-button" onClick={() => { setAccountMode('login'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>{customerSession ? 'Minha conta' : 'Entrar'}</button><button className="customer-signup-button" onClick={() => { setAccountMode('signup'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>Criar conta</button>
+        {customerSession ? <div className="customer-profile-wrap"><button className="customer-profile-button" onClick={() => setProfileOpen(v => !v)} aria-expanded={profileOpen}>{customerAvatar ? <img src={customerAvatar} alt="" /> : <span className="customer-avatar-initial">{customerInitial}</span>}<span className="customer-profile-name">{customerName}</span><span className="profile-chevron">⌄</span></button>{profileOpen && <div className="customer-profile-menu"><strong>{customerName}</strong><small>{customerSession.user.email}</small><button onClick={() => avatarInput.current?.click()} disabled={avatarUploading}>{avatarUploading ? 'Enviando foto…' : 'Trocar foto'}</button><button className="profile-logout" onClick={async () => { await supabase?.auth.signOut(); setProfileOpen(false); }}>Sair da conta</button></div>}<input ref={avatarInput} className="avatar-file-input" type="file" accept="image/*" onChange={e => { void uploadCustomerAvatar(e.target.files?.[0]); e.currentTarget.value = ''; }}/></div> : <><button className="customer-login-button" onClick={() => { setAccountMode('login'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>Entrar</button><button className="customer-signup-button" onClick={() => { setAccountMode('signup'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>Criar conta</button></>}
         <button className="icon-button" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} aria-label="Alternar tema">{theme === 'light' ? '☾' : '☼'}</button>
         <button className="cart-button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho com ${count} itens`}><svg className="cart-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="10" cy="20" r="1.3" fill="currentColor"/><circle cx="18" cy="20" r="1.3" fill="currentColor"/></svg><span className="cart-label">Carrinho</span><b>{count}</b></button>
       </div>
