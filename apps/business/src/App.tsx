@@ -7,7 +7,8 @@ type Order = { id:string; order_number:number; customer_name:string; total:numbe
 type Tab = 'overview'|'products'|'customers'|'inventory'|'orders';
 const brl=(v:number)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
 const blankProduct={name:'',description:'',sku:'',price:'',stock_quantity:'0',is_active:true,image_url:''};
-const blankCustomer={full_name:'',email:'',phone:'',document:'',notes:'',status:'active' as const};
+type CustomerForm = { full_name:string; email:string; phone:string; document:string; notes:string; status:'active'|'inactive' };
+const blankCustomer:CustomerForm={full_name:'',email:'',phone:'',document:'',notes:'',status:'active'};
 
 export default function App(){
  const [session,setSession]=useState<any>(null),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[authError,setAuthError]=useState('');
@@ -15,7 +16,7 @@ export default function App(){
  const [loading,setLoading]=useState(true),[message,setMessage]=useState(''),[error,setError]=useState(''),[query,setQuery]=useState('');
  const [productModal,setProductModal]=useState(false),[customerModal,setCustomerModal]=useState(false),[stockModal,setStockModal]=useState<Product|null>(null);
  const [editingProduct,setEditingProduct]=useState<Product|null>(null),[editingCustomer,setEditingCustomer]=useState<Customer|null>(null);
- const [productForm,setProductForm]=useState(blankProduct),[customerForm,setCustomerForm]=useState(blankCustomer);
+ const [productForm,setProductForm]=useState(blankProduct),[customerForm,setCustomerForm]=useState<CustomerForm>(blankCustomer);
  const [stockForm,setStockForm]=useState({type:'in',quantity:'1',reason:''});
  const [permissions,setPermissions]=useState<Record<string,boolean>>({});
  const notify=(s:string)=>{setMessage(s);setError('');},fail=(s:string)=>{setError(s);setMessage('');};
