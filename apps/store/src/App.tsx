@@ -85,7 +85,7 @@ export default function App() {
     if (!client) return;
     const refresh = async () => {
       const { data, error } = await client.from('store_products')
-        .select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id')
+        .select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id,store_product_variants(id,name,sku,price,image_url)')
         .eq('is_active', true).order('is_featured', { ascending: false }).order('sort_order').order('created_at', { ascending: false });
       if (error || !data) return;
       const latest = data as Product[];
