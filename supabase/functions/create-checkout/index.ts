@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const authResult = await authClient.auth.getUser();
     if (authResult.error || !authResult.data.user) return reply({ error: "Sessão inválida. Entre novamente." }, 401);
     const user = authResult.data.user;
-    const body = await req.json(), items = body.items, address = body.shipping_address;
+    const body = await req.json(), items = body.items, address = body.shipping_address, paymentMethod = body.payment_method === "pix" ? "pix" : "mercado_pago";
     if (!Array.isArray(items) || items.length < 1 || items.length > 30) return reply({ error: "Carrinho inválido." }, 400);
     const required = ["phone","cep","street","number","neighborhood","city","state"];
     if (!address || required.some((k) => !String(address[k] || "").trim())) return reply({ error: "Preencha os dados de entrega." }, 400);
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const customerName = String(user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente");
     const customer = await admin.from("crm_customers").upsert({ auth_user_id: user.id, full_name: customerName, email: user.email, phone: String(address.phone) }, { onConflict: "auth_user_id" }).select("id").single();
     if (customer.error) throw customer.error;
-    const orderResult = await admin.from("store_orders").insert({ customer_id: customer.data.id, customer_name: customerName, customer_email: user.email, status: "pending", payment_status: "pending", payment_method: "mercado_pago", payment_provider: "mercado_pago", subtotal, shipping_amount: 0, total: subtotal, shipping_address: address, notes: "Frete não incluído; combinar valor e entrega com o cliente." }).select("id,order_number").single();
+    const orderResult = await admin.from("store_orders").insert({ customer_id: customer.data.id, customer_name: customerName, customer_email: user.email, status: "pending", payment_status: "pending", payment_method: paymentMethod, payment_provider: "mercado_pago", subtotal, shipping_amount: 0, total: subtotal, shipping_address: address, notes: "Frete não incluído; combinar valor e entrega com o cliente." }).select("id,order_number").single();
     if (orderResult.error) throw orderResult.error;
     const order = orderResult.data;
     const lines = await admin.from("store_order_items").insert(normalized.map((line) => ({ ...line, order_id: order.id })));
@@ -45,6 +45,27 @@ Deno.serve(async (req) => {
     const accessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
     if (!accessToken) return reply({ error: "Configure MERCADOPAGO_ACCESS_TOKEN nos secrets do Supabase." }, 503);
     const origin = req.headers.get("origin") || "https://store.celeris.com.br";
+    if (paymentMethod === "pix") {
+      const mp = await fetch("https://api.mercadopago.com/v1/orders", { method: "POST", headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json", "X-Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({
+        type: "online",
+        processing_mode: "automatic",
+        total_amount: subtotal.toFixed(2),
+        external_reference: order.id,
+        description: "Celeris Store - Pedido #" + order.order_number,
+        payer: { email: user.email },
+        transactions: { payments: [{ amount: subtotal.toFixed(2), payment_method: { id: "pix", type: "bank_transfer" }, expiration_time: "P1D" }] }
+      }) });
+      const mpOrder = await mp.json();
+      const payment = mpOrder.transactions?.payments?.[0];
+      const pixMethod = payment?.payment_method;
+      if (!mp.ok || !mpOrder.id || !pixMethod?.qr_code || !pixMethod?.qr_code_base64) {
+        await admin.from("store_orders").update({ payment_status: "failed", notes: "Falha ao criar cobrança PIX no Mercado Pago." }).eq("id", order.id);
+        return reply({ error: mpOrder.message || mpOrder.cause?.[0]?.description || "O Mercado Pago não retornou os dados do PIX." }, 502);
+      }
+      const saved = await admin.from("store_orders").update({ provider_order_id: mpOrder.id, provider_reference: order.id, payment_method: "pix", payment_status: "pending" }).eq("id", order.id);
+      if (saved.error) throw saved.error;
+      return reply({ payment_method: "pix", order_id: order.id, order_number: order.order_number, pix: { qr_code: pixMethod.qr_code, qr_code_base64: pixMethod.qr_code_base64, ticket_url: pixMethod.ticket_url || null, payment_status: payment?.status || mpOrder.status || "action_required" } });
+    }
     const mp = await fetch("https://api.mercadopago.com/v1/orders", { method: "POST", headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json", "X-Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({
       type: "online", processing_mode: "manual", capture_mode: "automatic_async", total_amount: subtotal.toFixed(2), external_reference: order.id,
       description: "Celeris Store - Pedido #" + order.order_number, payer: { email: user.email },

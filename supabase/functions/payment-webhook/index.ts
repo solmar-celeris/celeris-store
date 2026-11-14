@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const isPaid = paymentOrder.status === "processed" && paid >= total && total > 0;
     const isFailed = ["cancelled", "expired", "failed"].includes(String(paymentOrder.status));
     const payment = paymentOrder.transactions?.payments?.[0];
-    const updates: Record<string, unknown> = { provider_order_id: paymentOrder.id, payment_status: isPaid ? "paid" : isFailed ? "failed" : "pending", payment_method: payment?.payment_method?.type || "mercado_pago", notes: "Mercado Pago: " + (paymentOrder.status || "unknown") + " / " + (paymentOrder.status_detail || "sem detalhe") };
+    const updates: Record<string, unknown> = { provider_order_id: paymentOrder.id, payment_status: isPaid ? "paid" : isFailed ? "failed" : "pending", payment_method: payment?.payment_method?.id || payment?.payment_method?.type || "mercado_pago", notes: "Mercado Pago: " + (paymentOrder.status || "unknown") + " / " + (paymentOrder.status_detail || "sem detalhe") };
     if (isPaid) updates.status = "confirmed";
     const result = await admin.from("store_orders").update(updates).eq("id", external);
     if (result.error) throw result.error;
