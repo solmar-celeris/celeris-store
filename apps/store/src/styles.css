@@ -160,3 +160,8 @@
 .brand-mark .bag-body{fill:var(--bag-fill)}
 .brand-mark .bag-handle{stroke:var(--bag-fill)}
 .brand-mark .bag-logo{fill:var(--bag-mark)}
+
+/* Use the original SolMar Celeris emblem on the shopping bag. */
+.brand-mark{object-fit:contain;width:58px;height:62px;flex:0 0 58px}
+.hero-bag-logo{object-fit:contain;width:min(185px,60%);height:auto;filter:drop-shadow(0 15px 22px rgba(0,0,0,.18))}
+@media(max-width:600px){.brand-mark{width:49px;height:53px;flex-basis:49px}.campaign-hero .hero-bag-logo{width:130px}}
