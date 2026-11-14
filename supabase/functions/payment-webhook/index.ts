@@ -3,7 +3,7 @@ const hex = (buffer: ArrayBuffer) => [...new Uint8Array(buffer)].map((b) => b.to
 async function validSignature(signature: string, requestId: string, dataId: string, secret: string) {
   const parts = Object.fromEntries(signature.split(",").map((part) => part.trim().split("=", 2)));
   if (!parts.ts || !parts.v1) return false;
-  const manifest = "id:" + dataId + ";request-id:" + requestId + ";ts:" + parts.ts + ";";
+  const manifest = "id:" + dataId.toLowerCase() + ";request-id:" + requestId + ";ts:" + parts.ts + ";";
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
   return hex(digest) === parts.v1.toLowerCase();
