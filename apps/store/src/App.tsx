@@ -13,6 +13,25 @@ function stored<T>(key: string, fallback: T): T {
   try { const value = localStorage.getItem(key); return value ? JSON.parse(value) as T : fallback; } catch { return fallback; }
 }
 
+function StoreBagLogo({ className = '', compact = false }: { className?: string; compact?: boolean }) {
+  return <svg className={className} viewBox="0 0 240 260" role="img" aria-label="Celeris Store">
+    <path className="bag-handle" d="M66 91V65C66 29 86 10 120 10s54 19 54 55v26" fill="none" strokeWidth="13" strokeLinecap="round"/>
+    <path className="bag-body" d="M42 82h156c12 0 21 9 22 21l10 125c1 14-9 24-23 24H33c-14 0-24-10-23-24l10-125c1-12 10-21 22-21Z"/>
+    <circle className="bag-handle" cx="66" cy="91" r="12" strokeWidth="8"/>
+    <circle className="bag-handle" cx="174" cy="91" r="12" strokeWidth="8"/>
+    <g className="bag-logo">
+      <circle cx="120" cy="128" r="18"/>
+      <path d="M83 165 119 137l36 28h-25l-11-9-13 9Z"/>
+      <path d="M69 177q51-23 102 0l-9 7q-42-17-84 0Z"/>
+      <path d="M69 190q51-17 102 0l-4 5q-47-13-94 0Z"/>
+      {!compact && <>
+        <text x="120" y="218" textAnchor="middle" className="bag-wordmark">CELERIS</text>
+        <text x="120" y="235" textAnchor="middle" className="bag-submark">S T O R E</text>
+      </>}
+    </g>
+  </svg>;
+}
+
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -68,7 +87,7 @@ export default function App() {
 
   return <div className="store-shell">
     <header className="site-header">
-      <a className="brand" href="#inicio" aria-label="Celeris Store início"><img className="brand-logo" src="https://teamceleris.pages.dev/assets/solmar-celeris-site-logo.png" alt="SolMar Celeris"/><span className="brand-copy"><strong>CELERIS</strong><small>STORE</small></span></a>
+      <a className="brand" href="#inicio" aria-label="Celeris Store início"><StoreBagLogo className="brand-mark" compact/><span className="brand-copy"><strong>CELERIS</strong><small>STORE</small></span></a>
       <nav className="desktop-nav"><a className="active" href="#loja">Loja</a><a href="#categorias">Categorias</a><a href="#sobre">Sobre a Celeris</a></nav>
       <div className="header-actions">
         <button className="icon-button" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} aria-label="Alternar tema">{theme === 'light' ? '☾' : '☼'}</button>
@@ -79,7 +98,7 @@ export default function App() {
     <main id="inicio">
       <section className="hero">
         <div className="hero-copy"><p className="eyebrow"><i /> A LOJA OFICIAL CELERIS</p><h1>Tecnologia, inovação<br />e <em>identidade.</em></h1><p className="hero-description">Explore os produtos e faça parte do movimento Celeris.</p><a className="primary-cta" href="#loja">Explorar produtos <span>↗</span></a><div className="hero-footnote">CELERIS · INOVAÇÃO EM MOVIMENTO</div></div>
-        <div className="hero-art" aria-label="Embalagem da loja com a marca SolMar Celeris"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="store-package"><div className="package-top"/><div className="package-front"><img src="https://teamceleris.pages.dev/assets/solmar-celeris-site-logo.png" alt="SolMar Celeris"/></div><div className="package-side"/></div><div className="hero-tag tag-top">CELERIS / STORE</div><div className="hero-tag tag-bottom">DESDE A IDEIA ATÉ O MOVIMENTO</div><div className="hero-glow"/></div>
+        <div className="hero-art" aria-label="Sacola Celeris Store"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><StoreBagLogo className="hero-bag-logo"/><div className="hero-tag tag-top">CELERIS / STORE</div><div className="hero-tag tag-bottom">DESDE A IDEIA ATÉ O MOVIMENTO</div><div className="hero-glow"/></div>
       </section>
 
       <section className="catalog-section" id="loja">
@@ -100,7 +119,7 @@ export default function App() {
           })}</div>}
       </section>
 
-      <section className="brand-banner" id="sobre"><div className="banner-mark"><img src="https://teamceleris.pages.dev/assets/solmar-celeris-site-logo.png" alt="SolMar Celeris"/></div><div><p className="eyebrow">MAIS QUE UMA MARCA</p><h2>Somos movidos por <em>inovação.</em></h2><p>Uma identidade. Uma equipe. Um movimento.</p></div><span className="banner-coordinate">CELERIS / BR</span></section>
+      <section className="brand-banner" id="sobre"><div className="banner-mark"><StoreBagLogo compact/></div><div><p className="eyebrow">MAIS QUE UMA MARCA</p><h2>Somos movidos por <em>inovação.</em></h2><p>Uma identidade. Uma equipe. Um movimento.</p></div><span className="banner-coordinate">CELERIS / BR</span></section>
     </main>
     <footer className="site-footer"><a className="footer-brand" href="#inicio">CELERIS <span>STORE</span></a><span>© {new Date().getFullYear()} Celeris. Todos os direitos reservados.</span><a href="#inicio">Voltar ao topo ↑</a></footer>
 
