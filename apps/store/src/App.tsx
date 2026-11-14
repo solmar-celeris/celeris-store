@@ -15,8 +15,8 @@ function stored<T>(key: string, fallback: T): T {
   try { const value = localStorage.getItem(key); return value ? JSON.parse(value) as T : fallback; } catch { return fallback; }
 }
 
-function StoreBagLogo({ className = '' }: { className?: string }) {
-  return <img className={className} src="/celeris-store-logo.svg" alt="SolMar Celeris" />;
+function StoreBagLogo({ className = '', variant = 'white' }: { className?: string; variant?: 'black' | 'white' }) {
+  return <img className={className} src={variant === 'black' ? '/celeris-store-logo-black.svg' : '/celeris-store-logo.svg'} alt="SolMar Celeris" />;
 }
 
 export default function App() {
@@ -142,7 +142,7 @@ export default function App() {
   return <div className="store-shell">
     <div className="store-topline"><span>Bem-vindo à loja oficial SolMar Celeris</span><div><button onClick={()=>setAccountOpen(true)}>Minha conta</button><span className="topline-separator">|</span><a href="https://celeris-business.pages.dev/" target="_blank" rel="noreferrer">Área restrita</a></div></div>
     <header className="site-header">
-      <a className="brand" href="#inicio" aria-label="Celeris Store início"><StoreBagLogo className="brand-mark"/></a>
+      <a className="brand" href="#inicio" aria-label="Celeris Store início"><StoreBagLogo className="brand-mark" variant={theme === "dark" ? "white" : "black"}/></a>
       <label className="header-search"><input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')document.getElementById('loja')?.scrollIntoView({behavior:'smooth'});}} placeholder="Buscar produtos..." aria-label="Buscar produtos"/><button type="button" aria-label="Buscar" onClick={()=>document.getElementById('loja')?.scrollIntoView({behavior:'smooth'})}>⌕</button></label>
       <div className="header-actions">
         {customerSession ? <div className="customer-profile-wrap"><button className="customer-profile-button" onClick={() => setProfileOpen(v => !v)} aria-expanded={profileOpen}>{customerAvatar ? <img src={customerAvatar} alt="" /> : <span className="customer-avatar-initial">{customerInitial}</span>}<span className="customer-profile-name">{customerName}</span><span className="profile-chevron">⌄</span></button>{profileOpen && <div className="customer-profile-menu"><strong>{customerName}</strong><small>{customerSession.user.email}</small><button onClick={() => avatarInput.current?.click()} disabled={avatarUploading}>{avatarUploading ? 'Enviando foto…' : 'Trocar foto'}</button><button className="profile-logout" onClick={async () => { await supabase?.auth.signOut(); setProfileOpen(false); }}>Sair da conta</button></div>}<input ref={avatarInput} className="avatar-file-input" type="file" accept="image/*" onChange={e => { void uploadCustomerAvatar(e.target.files?.[0]); e.currentTarget.value = ''; }}/></div> : <><button className="customer-login-button" onClick={() => { setAccountMode('login'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>Entrar</button><button className="customer-signup-button" onClick={() => { setAccountMode('signup'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>Criar conta</button></>}
