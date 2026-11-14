@@ -15,10 +15,12 @@ Deno.serve(async (req) => {
     const authResult = await authClient.auth.getUser();
     if (authResult.error || !authResult.data.user) return reply({ error: "Sessão inválida. Entre novamente." }, 401);
     const user = authResult.data.user;
-    const body = await req.json(), items = body.items, address = body.shipping_address, paymentMethod = body.payment_method === "pix" ? "pix" : "mercado_pago";
+    const body = await req.json(), items = body.items, address = body.shipping_address || {}, deliveryMethod = body.delivery_method === "pickup" ? "pickup" : "delivery", paymentMethod = body.payment_method === "pix" ? "pix" : "mercado_pago";
     if (!Array.isArray(items) || items.length < 1 || items.length > 30) return reply({ error: "Carrinho inválido." }, 400);
-    const required = ["phone","cep","street","number","neighborhood","city","state"];
-    if (!address || required.some((k) => !String(address[k] || "").trim())) return reply({ error: "Preencha os dados de entrega." }, 400);
+    if (!String(address.phone || "").trim()) return reply({ error: "Informe seu telefone ou WhatsApp." }, 400);
+    const required = ["cep","street","number","neighborhood","city","state"];
+    if (deliveryMethod === "delivery" && required.some((k) => !String(address[k] || "").trim())) return reply({ error: "Preencha o endereço de entrega." }, 400);
+    address.delivery_method = deliveryMethod;
     const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
     const ids = [...new Set(items.map((x: any) => String(x.product_id)))];
     const productResult = await admin.from("store_products").select("id,name,price,is_active,store_product_variants(id,name,price,is_active)").in("id", ids);
@@ -37,7 +39,7 @@ Deno.serve(async (req) => {
     const customerName = String(user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente");
     const customer = await admin.from("crm_customers").upsert({ auth_user_id: user.id, full_name: customerName, email: user.email, phone: String(address.phone) }, { onConflict: "auth_user_id" }).select("id").single();
     if (customer.error) throw customer.error;
-    const orderResult = await admin.from("store_orders").insert({ customer_id: customer.data.id, customer_name: customerName, customer_email: user.email, status: "pending", payment_status: "pending", payment_method: paymentMethod, payment_provider: "mercado_pago", subtotal, shipping_amount: 0, total: subtotal, shipping_address: address, notes: "Frete não incluído; combinar valor e entrega com o cliente." }).select("id,order_number").single();
+    const orderResult = await admin.from("store_orders").insert({ customer_id: customer.data.id, customer_name: customerName, customer_email: user.email, status: "pending", payment_status: "pending", payment_method: paymentMethod, payment_provider: "mercado_pago", subtotal, shipping_amount: 0, total: subtotal, shipping_address: address, notes: deliveryMethod === "pickup" ? "Modalidade: retirada em mãos. Combinar local e horário com o cliente." : "Modalidade: entrega no endereço. Frete não incluído; combinar valor e entrega com o cliente." }).select("id,order_number").single();
     if (orderResult.error) throw orderResult.error;
     const order = orderResult.data;
     const lines = await admin.from("store_order_items").insert(normalized.map((line) => ({ ...line, order_id: order.id })));
