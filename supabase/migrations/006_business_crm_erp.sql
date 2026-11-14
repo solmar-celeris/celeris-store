@@ -117,6 +117,7 @@ as $$
 declare
   v_product public.store_products;
   v_new integer;
+  v_old integer;
 begin
   if not public.has_permission('inventory.manage') then
     raise exception 'Sem permissão para ajustar estoque';
@@ -125,6 +126,7 @@ begin
   if p_movement_type not in ('in','out','adjustment') then raise exception 'Tipo de movimentação inválido'; end if;
   select * into v_product from public.store_products where id = p_product_id for update;
   if not found then raise exception 'Produto não encontrado'; end if;
+  v_old := v_product.stock_quantity;
   v_new := case p_movement_type
     when 'in' then v_product.stock_quantity + p_quantity
     when 'out' then v_product.stock_quantity - p_quantity
@@ -133,11 +135,29 @@ begin
   if v_new < 0 then raise exception 'Estoque insuficiente'; end if;
   update public.store_products set stock_quantity = v_new where id = p_product_id returning * into v_product;
   insert into public.inventory_movements(product_id,movement_type,quantity,previous_quantity,new_quantity,reason,created_by)
-  values(p_product_id,p_movement_type,p_quantity,
-    case when p_movement_type='in' then v_new-p_quantity when p_movement_type='out' then v_new+p_quantity else v_new end,
-    v_new, nullif(trim(p_reason),''), auth.uid());
+  values(p_product_id,p_movement_type,p_quantity,v_old,
+    v_new, coalesce(nullif(trim(p_reason),''),'Ajuste manual'), auth.uid());
   return v_product;
 end;
 $$;
 revoke all on function public.adjust_product_stock(uuid,integer,text,text) from public;
 grant execute on function public.adjust_product_stock(uuid,integer,text,text) to authenticated;
+
+-- Default permission sets for built-in business roles.
+insert into public.role_permissions(role_id,permission_id)
+select r.id,p.id from public.roles r cross join public.permissions p
+where r.key='admin'
+  and p.key in ('dashboard.read','users.read','users.manage','roles.manage','crm.read','crm.manage','products.read','products.manage','inventory.read','inventory.manage','orders.read','orders.manage','finance.read','finance.manage','purchases.manage','reports.read','store.manage')
+on conflict do nothing;
+
+insert into public.role_permissions(role_id,permission_id)
+select r.id,p.id from public.roles r cross join public.permissions p
+where r.key='manager'
+  and p.key in ('dashboard.read','crm.read','crm.manage','products.read','products.manage','inventory.read','inventory.manage','orders.read','orders.manage','reports.read','finance.read')
+on conflict do nothing;
+
+insert into public.role_permissions(role_id,permission_id)
+select r.id,p.id from public.roles r cross join public.permissions p
+where r.key='operator'
+  and p.key in ('dashboard.read','crm.read','products.read','inventory.read','orders.read')
+on conflict do nothing;
