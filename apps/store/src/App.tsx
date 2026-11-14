@@ -3,12 +3,13 @@ import type { FormEvent } from 'react';
 import { supabase } from '@celeris/supabase-client';
 
 type Category = { id: string; name: string; slug: string };
+type Variant = { id:string; name:string; sku:string|null; price:number|string; image_url:string|null };
 type Product = {
   id: string; name: string; slug: string; description: string | null; sku: string | null;
   price: number | string; compare_at_price: number | string | null; image_url: string | null;
-  stock_quantity: number; is_featured: boolean; category_id: string | null;
+  stock_quantity: number; is_featured: boolean; category_id: string | null; store_product_variants?: Variant[];
 };
-type CartLine = { product: Product; quantity: number };
+type CartLine = { product: Product; variant?: Variant; quantity: number };
 const money = (v: number | string) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
 function stored<T>(key: string, fallback: T): T {
   try { const value = localStorage.getItem(key); return value ? JSON.parse(value) as T : fallback; } catch { return fallback; }
@@ -26,6 +27,7 @@ function StoreBagLogo({ className = '', compact = false }: { className?: string;
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedVariants,setSelectedVariants]=useState<Record<string,string>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [cart, setCart] = useState<CartLine[]>(() => stored('celeris-store-cart', []));
   const [theme, setTheme] = useState<'light' | 'dark'>(() => stored<'light' | 'dark'>('celeris-store-theme', 'light'));
@@ -64,7 +66,7 @@ export default function App() {
     async function load() {
       if (!supabase) { setError('Configure VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY nas variáveis do projeto Cloudflare.'); setLoading(false); return; }
       const [p, c] = await Promise.all([
-        supabase.from('store_products').select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id').eq('is_active', true).order('is_featured', { ascending: false }).order('sort_order').order('created_at', { ascending: false }),
+        supabase.from('store_products').select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id,store_product_variants(id,name,sku,price,image_url)').eq('is_active', true).order('is_featured', { ascending: false }).order('sort_order').order('created_at', { ascending: false }),
         supabase.from('store_categories').select('id,name,slug').eq('is_active', true).order('sort_order')
       ]);
       if (!active) return;
@@ -90,7 +92,7 @@ export default function App() {
       setProducts(latest);
       setCart(current => current.map(line => {
         const updated = latest.find(p => p.id === line.product.id);
-        return updated ? { product: updated, quantity: Math.min(line.quantity, updated.stock_quantity) } : line;
+        return updated ? { ...line, product: updated } : line;
       }).filter(line => line.quantity > 0));
     };
     const timer = window.setInterval(refresh, 15000);
@@ -105,16 +107,11 @@ export default function App() {
       (!q || [p.name, p.description || '', p.sku || ''].some(v => v.toLocaleLowerCase('pt-BR').includes(q))));
   }, [products, search, category]);
   const count = cart.reduce((n, l) => n + l.quantity, 0);
-  const total = cart.reduce((n, l) => n + Number(l.product.price) * l.quantity, 0);
+  const total = cart.reduce((n, l) => n + Number(l.variant?.price ?? l.product.price) * l.quantity, 0);
 
-  function add(product: Product) {
-    if (product.stock_quantity < 1) return;
-    setCart(current => {
-      const found = current.find(l => l.product.id === product.id);
-      return found
-        ? current.map(l => l.product.id === product.id ? { ...l, quantity: Math.min(l.quantity + 1, product.stock_quantity) } : l)
-        : [...current, { product, quantity: 1 }];
-    });
+  function add(product: Product, variant?: Variant) {
+    const key=product.id+':'+(variant?.id||'default');
+    setCart(current=>{const found=current.find(l=>l.product.id+':'+(l.variant?.id||'default')===key);return found?current.map(l=>l.product.id+':'+(l.variant?.id||'default')===key?{...l,quantity:l.quantity+1}:l):[...current,{product,variant,quantity:1}];});
     setCartOpen(true);
   }
   async function submitCustomerAuth(e: FormEvent<HTMLFormElement>) {
@@ -145,9 +142,7 @@ export default function App() {
     setAvatarUploading(false);
   }
 
-  function quantity(id: string, delta: number) {
-    setCart(current => current.map(l => l.product.id === id ? { ...l, quantity: Math.min(l.product.stock_quantity, l.quantity + delta) } : l).filter(l => l.quantity > 0));
-  }
+  function quantity(key:string,delta:number){setCart(current=>current.map(l=>l.product.id+':'+(l.variant?.id||'default')===key?{...l,quantity:l.quantity+delta}:l).filter(l=>l.quantity>0));}
 
   return <div className="store-shell">
     <header className="site-header">
@@ -177,10 +172,12 @@ export default function App() {
         {loading ? <div className="product-grid">{[1,2,3,4].map(i => <div className="product-skeleton" key={i}><div/><span/><span/></div>)}</div> :
           !error && visible.length === 0 ? <div className="empty-state"><span className="empty-symbol" aria-hidden="true">◇</span><h3>{products.length ? 'Nenhum produto encontrado' : 'A vitrine está sendo preparada'}</h3><p>{products.length ? 'Tente outra busca ou categoria.' : 'Os produtos cadastrados no catálogo serão exibidos aqui.'}</p>{(search || category !== 'all') && <button className="text-button" onClick={() => { setSearch(''); setCategory('all'); }}>Limpar filtros</button>}</div> :
           <div className="product-grid">{visible.map(p => {
-            const price = Number(p.price); const compare = Number(p.compare_at_price || 0);
+            const variants=p.store_product_variants||[]; const selected=variants.find(v=>v.id===selectedVariants[p.id])||variants[0]; const price=Number(selected?.price??p.price);
             return <article className="product-card" key={p.id}>
-              <div className="product-image-wrap">{p.image_url ? <img src={p.image_url} alt={p.name} loading="lazy"/> : <div className="product-placeholder"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 16 24 7l17 9v20l-17 9L7 36V16Z" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="m7 16 17 10 17-10M24 26v19M16 11l17 10" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg><small>CELERIS STORE</small></div>}{p.is_featured && <span className="featured-tag">DESTAQUE</span>}{p.stock_quantity <= 0 && <span className="sold-tag">ESGOTADO</span>}</div>
-              <div className="product-info"><p className="product-category">{categories.find(c => c.id === p.category_id)?.name || 'CELERIS'}</p><h3>{p.name}</h3><p className="product-description">{p.description || 'Produto oficial Celeris.'}</p><div className="product-buy-row"><div><strong>{money(price)}</strong>{compare > price && <del>{money(compare)}</del>}</div><button className="add-button" onClick={() => add(p)} disabled={p.stock_quantity <= 0} aria-label={`Adicionar ${p.name} ao carrinho`}>+</button></div></div>
+              <div className="product-image-wrap">{(selected?.image_url||p.image_url)?<img src={selected?.image_url||p.image_url||''} alt={p.name} loading="lazy"/>:<div className="product-placeholder"><small>CELERIS STORE</small></div>}{p.is_featured&&<span className="featured-tag">DESTAQUE</span>}</div>
+              <div className="product-info"><p className="product-category">{categories.find(c=>c.id===p.category_id)?.name||'CELERIS'}</p><h3>{p.name}</h3><p className="product-description">{p.description||'Produto oficial Celeris.'}</p>
+              {variants.length>0&&<label className="variant-store-select">Modelo<select value={selected?.id||''} onChange={e=>setSelectedVariants(current=>({...current,[p.id]:e.target.value}))}>{variants.map(v=><option key={v.id} value={v.id}>{v.name} — {money(Number(v.price))}</option>)}</select></label>}
+              <div className="product-buy-row"><div><strong className="variant-price">{money(price)}</strong></div><button className="add-button" onClick={()=>add(p,selected)} aria-label={'Adicionar '+p.name+' ao carrinho'}>+</button></div></div>
             </article>;
           })}</div>}
       </section>
@@ -195,7 +192,7 @@ export default function App() {
       <aside className="cart-drawer" aria-label="Carrinho de compras">
         <div className="drawer-header"><div><p className="eyebrow">SUA SELEÇÃO</p><h2>Carrinho <span>({count})</span></h2></div><button className="icon-button close-button" onClick={() => setCartOpen(false)} aria-label="Fechar carrinho">×</button></div>
         {cart.length === 0 ? <div className="cart-empty"><svg className="empty-cart-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M5 8h4l4.5 23h23l5-17H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="18" cy="39" r="2.5" fill="currentColor"/><circle cx="34" cy="39" r="2.5" fill="currentColor"/></svg><h3>Seu carrinho está vazio</h3><p>Adicione produtos da vitrine para começar.</p><button className="primary-cta" onClick={() => setCartOpen(false)}>Explorar produtos <span>↗</span></button></div> :
-          <><div className="cart-lines">{cart.map(l => <div className="cart-line" key={l.product.id}><div className="cart-thumb">{l.product.image_url ? <img src={l.product.image_url} alt=""/> : <svg viewBox="0 0 40 40" aria-hidden="true"><path d="m5 13 15-8 15 8v18l-15 8-15-8V13Z" fill="none" stroke="currentColor" strokeWidth="1.7"/><path d="m5 13 15 9 15-9M20 22v17" fill="none" stroke="currentColor" strokeWidth="1.7"/></svg>}</div><div className="cart-line-info"><strong>{l.product.name}</strong><span>{money(l.product.price)}</span><div className="quantity-control"><button onClick={() => quantity(l.product.id, -1)}>−</button><b>{l.quantity}</b><button onClick={() => quantity(l.product.id, 1)} disabled={l.quantity >= l.product.stock_quantity}>+</button></div></div><strong className="line-total">{money(Number(l.product.price) * l.quantity)}</strong></div>)}</div><div className="drawer-summary"><div><span>Subtotal</span><strong>{money(total)}</strong></div><p>Frete e pagamento serão calculados na etapa de finalização.</p><button className="checkout-button" disabled>Finalização de compra em configuração <span>→</span></button><button className="clear-cart" onClick={() => setCart([])}>Limpar carrinho</button></div></>}
+          <><div className="cart-lines">{cart.map(l => <div className="cart-line" key={l.product.id+":"+(l.variant?.id||"default")}><div className="cart-thumb">{l.product.image_url ? <img src={l.product.image_url} alt=""/> : <svg viewBox="0 0 40 40" aria-hidden="true"><path d="m5 13 15-8 15 8v18l-15 8-15-8V13Z" fill="none" stroke="currentColor" strokeWidth="1.7"/><path d="m5 13 15 9 15-9M20 22v17" fill="none" stroke="currentColor" strokeWidth="1.7"/></svg>}</div><div className="cart-line-info"><strong>{l.product.name}</strong>{l.variant&&<small>{l.variant.name}</small>}<span>{money(Number(l.variant?.price??l.product.price))}</span><div className="quantity-control"><button onClick={() => quantity(l.product.id+":"+(l.variant?.id||"default"), -1)}>−</button><b>{l.quantity}</b><button onClick={() => quantity(l.product.id+":"+(l.variant?.id||"default"), 1)}>+</button></div></div><strong className="line-total">{money(Number(l.variant?.price??l.product.price) * l.quantity)}</strong></div>)}</div><div className="drawer-summary"><div><span>Subtotal</span><strong>{money(total)}</strong></div><p>Frete e pagamento serão calculados na etapa de finalização.</p><button className="checkout-button" disabled>Finalização de compra em configuração <span>→</span></button><button className="clear-cart" onClick={() => setCart([])}>Limpar carrinho</button></div></>}
       </aside>
     </div>}
   </div>;

@@ -43,3 +43,10 @@ body{background:var(--c-bg);color:var(--c-ink)}
  .login-card .business-brand{align-items:center;margin:-34px -34px 24px;padding:18px 24px}
  .login-card .business-brand img{width:180px;height:68px}
 }
+
+/* Catálogo por demanda: upload de imagens e variações de modelos. */
+.product-upload-preview{display:block;max-width:150px;max-height:130px;object-fit:contain;margin-top:8px;border:1px solid var(--line);border-radius:10px}
+.variant-editor{display:grid;gap:12px;margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.variant-edit-row{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.variant-upload-preview{width:76px;height:76px;object-fit:cover;border-radius:8px}
+.variant-editor .panel-heading{align-items:center}
