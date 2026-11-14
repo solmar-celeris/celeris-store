@@ -33,14 +33,29 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [customerSession, setCustomerSession] = useState<any>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountMode, setAccountMode] = useState<'login' | 'signup'>('login');
+  const [accountName, setAccountName] = useState('');
+  const [accountEmail, setAccountEmail] = useState('');
+  const [accountPassword, setAccountPassword] = useState('');
+  const [accountMessage, setAccountMessage] = useState('');
+  const [accountError, setAccountError] = useState('');
 
   useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem('celeris-store-theme', JSON.stringify(theme)); }, [theme]);
   useEffect(() => { localStorage.setItem('celeris-store-cart', JSON.stringify(cart)); }, [cart]);
 
   useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => setCustomerSession(data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setCustomerSession(session));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     let active = true;
     async function load() {
-      if (!supabase) { setError('Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nas variáveis do projeto Cloudflare.'); setLoading(false); return; }
+      if (!supabase) { setError('Configure VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY nas variáveis do projeto Cloudflare.'); setLoading(false); return; }
       const [p, c] = await Promise.all([
         supabase.from('store_products').select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id').eq('is_active', true).order('is_featured', { ascending: false }).order('sort_order').order('created_at', { ascending: false }),
         supabase.from('store_categories').select('id,name,slug').eq('is_active', true).order('sort_order')
@@ -52,6 +67,28 @@ export default function App() {
     }
     void load();
     return () => { active = false; };
+  }, []);
+
+  // The Business panel and Store use the same store_products table. Polling keeps
+  // storefront availability synchronized even if Supabase Realtime is not enabled.
+  useEffect(() => {
+    if (!supabase) return;
+    const refresh = async () => {
+      const { data, error } = await supabase.from('store_products')
+        .select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id')
+        .eq('is_active', true).order('is_featured', { ascending: false }).order('sort_order').order('created_at', { ascending: false });
+      if (error || !data) return;
+      const latest = data as Product[];
+      setProducts(latest);
+      setCart(current => current.map(line => {
+        const updated = latest.find(p => p.id === line.product.id);
+        return updated ? { product: updated, quantity: Math.min(line.quantity, updated.stock_quantity) } : line;
+      }).filter(line => line.quantity > 0));
+    };
+    const timer = window.setInterval(refresh, 15000);
+    const onVisibility = () => { if (document.visibilityState === 'visible') void refresh(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
 
   const visible = useMemo(() => {
@@ -72,6 +109,17 @@ export default function App() {
     });
     setCartOpen(true);
   }
+  async function submitCustomerAuth(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); if (!supabase) return;
+    setAccountError(''); setAccountMessage('');
+    const result = accountMode === 'signup'
+      ? await supabase.auth.signUp({ email: accountEmail, password: accountPassword, options: { data: { full_name: accountName } } })
+      : await supabase.auth.signInWithPassword({ email: accountEmail, password: accountPassword });
+    if (result.error) setAccountError(result.error.message);
+    else if (accountMode === 'signup' && !result.data.session) setAccountMessage('Cadastro realizado. Verifique seu e-mail para confirmar a conta.');
+    else { setAccountMessage('Login realizado com sucesso.'); setAccountOpen(false); setAccountPassword(''); }
+  }
+
   function quantity(id: string, delta: number) {
     setCart(current => current.map(l => l.product.id === id ? { ...l, quantity: Math.min(l.product.stock_quantity, l.quantity + delta) } : l).filter(l => l.quantity > 0));
   }
@@ -79,8 +127,9 @@ export default function App() {
   return <div className="store-shell">
     <header className="site-header">
       <a className="brand" href="#inicio" aria-label="Celeris Store início"><StoreBagLogo className="brand-mark" compact/><span className="brand-copy"><strong>CELERIS</strong><small>STORE</small></span></a>
-      <nav className="desktop-nav"><a className="active" href="#loja">Loja</a><a href="#categorias">Categorias</a><a href="#sobre">Sobre a Celeris</a></nav>
+      <nav className="desktop-nav"><a className="active" href="#loja">Loja</a><a href="#categorias">Categorias</a><a href="#sobre">Sobre a Celeris</a><a className="restricted-link" href="https://celeris-business.pages.dev/" target="_blank" rel="noreferrer">Área restrita ↗</a></nav>
       <div className="header-actions">
+        <button className="customer-login-button" onClick={() => { setAccountMode('login'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>{customerSession ? 'Minha conta' : 'Entrar'}</button>
         <button className="icon-button" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} aria-label="Alternar tema">{theme === 'light' ? '☾' : '☼'}</button>
         <button className="cart-button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho com ${count} itens`}><svg className="cart-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="10" cy="20" r="1.3" fill="currentColor"/><circle cx="18" cy="20" r="1.3" fill="currentColor"/></svg><span className="cart-label">Carrinho</span><b>{count}</b></button>
       </div>
@@ -113,6 +162,8 @@ export default function App() {
 
     </main>
     <footer className="site-footer"><a className="footer-brand" href="#inicio">CELERIS <span>STORE</span></a><span>© {new Date().getFullYear()} Celeris. Todos os direitos reservados.</span><a href="#inicio">Voltar ao topo ↑</a></footer>
+
+    {accountOpen && <div className="drawer-backdrop account-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAccountOpen(false); }}><section className="account-modal" role="dialog" aria-modal="true" aria-label="Conta do cliente"><button className="account-close" onClick={() => setAccountOpen(false)} aria-label="Fechar">×</button><p className="eyebrow">ÁREA DO CLIENTE</p><h2>{accountMode === 'login' ? 'Acesse sua conta' : 'Crie sua conta'}</h2><p className="account-intro">Entre para sua experiência na Celeris Store.</p><form onSubmit={submitCustomerAuth}>{accountMode === 'signup' && <label>Nome completo<input value={accountName} onChange={e => setAccountName(e.target.value)} required autoComplete="name"/></label>}<label>E-mail<input type="email" value={accountEmail} onChange={e => setAccountEmail(e.target.value)} required autoComplete="email"/></label><label>Senha<input type="password" value={accountPassword} onChange={e => setAccountPassword(e.target.value)} required minLength={6} autoComplete={accountMode === 'login' ? 'current-password' : 'new-password'}/></label>{accountError && <div className="account-feedback error">{accountError}</div>}{accountMessage && <div className="account-feedback">{accountMessage}</div>}<button className="checkout-button" type="submit">{accountMode === 'login' ? 'Entrar' : 'Criar conta'} <span>→</span></button></form><button className="account-switch" onClick={() => { setAccountMode(accountMode === 'login' ? 'signup' : 'login'); setAccountError(''); setAccountMessage(''); }}>{accountMode === 'login' ? 'Ainda não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}</button>{customerSession && <button className="account-signout" onClick={async () => { await supabase?.auth.signOut(); setAccountOpen(false); }}>Sair da conta</button>}</section></div>}
 
     {cartOpen && <div className="drawer-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setCartOpen(false); }}>
       <aside className="cart-drawer" aria-label="Carrinho de compras">
