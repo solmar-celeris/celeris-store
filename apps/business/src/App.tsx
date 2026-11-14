@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { supabase } from '@celeris/supabase-client';
 
-type Category = {id:string;name:string;slug:string;is_active:boolean;sort_order:number};\ntype Product = { id:string; name:string; slug:string; description:string|null; sku:string|null; price:number; stock_quantity:number; is_active:boolean; category_id:string|null; image_url:string|null };
+type Category = {id:string;name:string;slug:string;is_active:boolean;sort_order:number};
+type Product = { id:string; name:string; slug:string; description:string|null; sku:string|null; price:number; stock_quantity:number; is_active:boolean; category_id:string|null; image_url:string|null };
 type VariantDraft = { id?:string; name:string; sku:string; price:string; image_url:string; image_file:File|null; is_active:boolean };
 type Customer = { id:string; full_name:string; email:string|null; phone:string|null; document:string|null; notes:string|null; status:'active'|'inactive'; created_at:string };
 type Order = { id:string; order_number:number; customer_name:string; total:number; status:string; payment_status:string; created_at:string };
@@ -31,12 +32,14 @@ export default function App(){
    supabase.from('store_products').select('id,name,slug,description,sku,price,stock_quantity,is_active,category_id,image_url').order('name'),
    supabase.from('crm_customers').select('*').order('created_at',{ascending:false}),
    supabase.from('store_orders').select('id,order_number,customer_name,total,status,payment_status,created_at').order('created_at',{ascending:false}).limit(500),
-   supabase.from('inventory_movements').select('*,store_products(name,sku)').order('created_at',{ascending:false}).limit(50)
+   supabase.from('inventory_movements').select('*,store_products(name,sku)').order('created_at',{ascending:false}).limit(50),
+   supabase.from('store_categories').select('id,name,slug,is_active,sort_order').order('sort_order').order('name')
   ]);
   if(p.error)fail(p.error.message);else setProducts((p.data||[]) as Product[]);
   if(c.error)fail(c.error.message);else setCustomers((c.data||[]) as Customer[]);
   if(o.error && !o.error.message.includes('does not exist'))fail(o.error.message);else setOrders((o.data||[]) as Order[]);
-  if(!m.error)setMovements(m.data||[]);\n  if(!cat.error)setCategories((cat.data||[]) as Category[]);else fail(cat.error.message);
+  if(!m.error)setMovements(m.data||[]);
+  if(!cat.error)setCategories((cat.data||[]) as Category[]);else fail(cat.error.message);
   setLoading(false);
  },[]);
  useEffect(()=>{if(!supabase){setAuthError('Configure as variáveis do Supabase no Cloudflare.');setLoading(false);return;}
