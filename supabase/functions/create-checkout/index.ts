@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const url = Deno.env.get("SUPABASE_URL")!;
     const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const token = authHeader.replace(/^Bearer\\s+/i, "");
+    const token = authHeader.replace(/^Bearer\s+/i, "");
     const authClient = createClient(url, anon, { global: { headers: { Authorization: "Bearer " + token } } });
     const authResult = await authClient.auth.getUser();
     if (authResult.error || !authResult.data.user) return reply({ error: "Sessão inválida. Entre novamente." }, 401);
