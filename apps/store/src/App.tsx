@@ -73,9 +73,10 @@ export default function App() {
   // The Business panel and Store use the same store_products table. Polling keeps
   // storefront availability synchronized even if Supabase Realtime is not enabled.
   useEffect(() => {
-    if (!supabase) return;
+    const client = supabase;
+    if (!client) return;
     const refresh = async () => {
-      const { data, error } = await supabase.from('store_products')
+      const { data, error } = await client.from('store_products')
         .select('id,name,slug,description,sku,price,compare_at_price,image_url,stock_quantity,is_featured,category_id')
         .eq('is_active', true).order('is_featured', { ascending: false }).order('sort_order').order('created_at', { ascending: false });
       if (error || !data) return;
