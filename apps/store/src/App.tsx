@@ -21,7 +21,7 @@ function StoreBagLogo({ className = '', compact = false }: { className?: string;
     <path className="bag-body" d="M67 105h186c17 0 29 12 31 29l19 168c2 17-10 29-27 29H44c-17 0-29-12-27-29l19-168c2-17 14-29 31-29Z"/>
     <circle className="bag-handle" cx="92" cy="118" r="13" strokeWidth="10"/>
     <circle className="bag-handle" cx="228" cy="118" r="13" strokeWidth="10"/>
-    <image className="bag-logo-image" href="/celeris-store-logo.svg" x="65" y="140" width="190" height="174" preserveAspectRatio="xMidYMid meet"/>
+    <image className="bag-logo-image" href="/celeris-store-logo-black.svg" x="65" y="140" width="190" height="174" preserveAspectRatio="xMidYMid meet"/>
   </svg>;
 }
 
