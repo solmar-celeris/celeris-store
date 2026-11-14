@@ -1,0 +1,2 @@
+-- Seed intencionalmente sem usuário administrador.
+-- Crie uma conta em Supabase Auth e siga o procedimento do README.
