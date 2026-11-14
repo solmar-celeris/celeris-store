@@ -55,3 +55,6 @@
 @media(max-width:720px){.customer-profile-button{height:36px;gap:5px;padding-right:7px}.customer-profile-button>img,.customer-avatar-initial{width:28px;height:28px;flex-basis:28px}.customer-profile-name{max-width:75px;font-size:9px}.customer-profile-menu{right:0}}
 
 .variant-store-select{display:grid;gap:6px;margin:12px 0;color:var(--muted);font-size:11px;font-weight:700}.variant-store-select select{width:100%;min-height:38px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}
+
+/* Header brand: white shopping bag with official black Celeris mark. */
+.brand-mark{--bag-fill:#fff!important;--logo-fill:#050505!important}.brand-mark .bag-body{fill:#fff!important}.brand-mark .bag-handle{stroke:#fff!important}.brand-mark .bag-logo-image{filter:none!important}
