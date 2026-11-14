@@ -19,17 +19,7 @@ function StoreBagLogo({ className = '', compact = false }: { className?: string;
     <path className="bag-body" d="M67 105h186c17 0 29 12 31 29l19 168c2 17-10 29-27 29H44c-17 0-29-12-27-29l19-168c2-17 14-29 31-29Z"/>
     <circle className="bag-handle" cx="92" cy="118" r="13" strokeWidth="10"/>
     <circle className="bag-handle" cx="228" cy="118" r="13" strokeWidth="10"/>
-    <g className="bag-logo">
-      <circle cx="160" cy="157" r="27"/>
-      <path d="M84 215 158 157l75 58h-48l-26-21-29 21Z"/>
-      <path d="m111 215 49-39 49 39h-32l-17-14-19 14Z"/>
-      <path d="M56 236Q160 184 264 236l-19 12q-85-39-170 0Z"/>
-      <path d="M56 258Q160 219 264 258l-12 8q-92-30-184 0Z"/>
-      {!compact && <>
-        <text x="160" y="294" textAnchor="middle" className="bag-wordmark">CELERIS</text>
-        <text x="160" y="315" textAnchor="middle" className="bag-submark">S T O R E</text>
-      </>}
-    </g>
+    <image className="bag-logo-image" href="/celeris-store-logo.svg" x="43" y="137" width="234" height="215" preserveAspectRatio="xMidYMid meet"/>
   </svg>;
 }
 
@@ -120,7 +110,7 @@ export default function App() {
           })}</div>}
       </section>
 
-      <section className="brand-banner" id="sobre"><div className="banner-mark"><StoreBagLogo compact/></div><div><p className="eyebrow">MAIS QUE UMA MARCA</p><h2>Somos movidos por <em>inovação.</em></h2><p>Uma identidade. Uma equipe. Um movimento.</p></div><span className="banner-coordinate">CELERIS / BR</span></section>
+
     </main>
     <footer className="site-footer"><a className="footer-brand" href="#inicio">CELERIS <span>STORE</span></a><span>© {new Date().getFullYear()} Celeris. Todos os direitos reservados.</span><a href="#inicio">Voltar ao topo ↑</a></footer>
 
