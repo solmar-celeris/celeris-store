@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { supabase } from '@celeris/supabase-client';
 
 type Category = { id: string; name: string; slug: string };
@@ -109,7 +110,7 @@ export default function App() {
     });
     setCartOpen(true);
   }
-  async function submitCustomerAuth(e: React.FormEvent<HTMLFormElement>) {
+  async function submitCustomerAuth(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); if (!supabase) return;
     setAccountError(''); setAccountMessage('');
     const result = accountMode === 'signup'
@@ -129,6 +130,7 @@ export default function App() {
       <a className="brand" href="#inicio" aria-label="Celeris Store início"><StoreBagLogo className="brand-mark" compact/><span className="brand-copy"><strong>CELERIS</strong><small>STORE</small></span></a>
       <nav className="desktop-nav"><a className="active" href="#loja">Loja</a><a href="#categorias">Categorias</a><a href="#sobre">Sobre a Celeris</a><a className="restricted-link" href="https://celeris-business.pages.dev/" target="_blank" rel="noreferrer">Área restrita ↗</a></nav>
       <div className="header-actions">
+        <a className="restricted-mobile-link" href="https://celeris-business.pages.dev/" target="_blank" rel="noreferrer">Área restrita</a>
         <button className="customer-login-button" onClick={() => { setAccountMode('login'); setAccountMessage(''); setAccountError(''); setAccountOpen(true); }}>{customerSession ? 'Minha conta' : 'Entrar'}</button>
         <button className="icon-button" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} aria-label="Alternar tema">{theme === 'light' ? '☾' : '☼'}</button>
         <button className="cart-button" onClick={() => setCartOpen(true)} aria-label={`Abrir carrinho com ${count} itens`}><svg className="cart-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="10" cy="20" r="1.3" fill="currentColor"/><circle cx="18" cy="20" r="1.3" fill="currentColor"/></svg><span className="cart-label">Carrinho</span><b>{count}</b></button>
