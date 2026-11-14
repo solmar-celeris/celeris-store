@@ -50,3 +50,10 @@ body{background:var(--c-bg);color:var(--c-ink)}
 .variant-edit-row{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 .variant-upload-preview{width:76px;height:76px;object-fit:cover;border-radius:8px}
 .variant-editor .panel-heading{align-items:center}
+
+.category-manager{margin:16px 0 20px}
+.category-add-form{display:flex;gap:10px;align-items:center;margin:14px 0}
+.category-add-form input{flex:1;min-width:0;border:1px solid var(--c-line);border-radius:8px;padding:11px 13px;background:#fff;color:#24334b}
+.category-admin-list{display:flex;flex-wrap:wrap;gap:8px}
+.category-admin-list span{padding:7px 12px;border-radius:20px;background:#eaf3fb;color:#07559a;font-size:11px;font-weight:700}
+@media(max-width:560px){.category-add-form{align-items:stretch;flex-direction:column}.category-add-form button{width:100%}}

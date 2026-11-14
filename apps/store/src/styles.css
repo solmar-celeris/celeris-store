@@ -58,3 +58,32 @@
 
 /* Header brand: white shopping bag with official black Celeris mark. */
 .brand-mark{--bag-fill:#fff!important;--logo-fill:#050505!important}.brand-mark .bag-body{fill:#fff!important}.brand-mark .bag-handle{stroke:#fff!important}.brand-mark .bag-logo-image{filter:none!important}
+
+/* Home storefront: prominent search and featured products. */
+.brand-mark{--bag-fill:#fff;--logo-fill:#07111d}
+.brand-mark .bag-logo{fill:var(--logo-fill)}
+.hero-bag-logo{--bag-fill:#050505;--logo-fill:#fff}
+.hero-bag-logo .bag-logo{fill:var(--logo-fill)}
+.home-search{padding:22px clamp(22px,10vw,150px) 8px;background:var(--bg)}
+.home-search-box{display:flex;align-items:center;gap:12px;max-width:900px;height:58px;margin:0 auto;padding:0 8px 0 20px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:var(--shadow);color:var(--muted)}
+.home-search-box>span{font-size:26px;color:var(--ocean)}
+.home-search-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font-size:15px}
+.home-search-box button{height:42px;padding:0 23px;border:0;border-radius:8px;background:var(--ocean);color:#fff;font-weight:800;cursor:pointer}
+.featured-section{padding:42px clamp(22px,10vw,150px) 34px}
+.featured-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:20px}
+.featured-heading .eyebrow{margin-bottom:8px}
+.featured-heading h2{margin:0;color:var(--ocean);font:800 clamp(25px,3vw,36px) Manrope,sans-serif;letter-spacing:-.05em}
+.featured-heading h2 em{color:var(--orange);font-style:normal}
+.featured-heading>a{color:var(--blue);font-size:12px;font-weight:700;text-decoration:none}
+.featured-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.featured-card{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--card);transition:transform .18s,box-shadow .18s}
+.featured-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.featured-image{height:190px;display:grid;place-items:center;padding:15px;background:var(--surface)}
+.featured-image img{width:100%;height:100%;object-fit:contain}
+.featured-card-info{display:grid;gap:7px;padding:15px}
+.featured-card-info>span{color:var(--orange);font-size:9px;font-weight:900;letter-spacing:.14em}
+.featured-card-info h3{margin:0;color:var(--ink);font-size:15px}
+.featured-card-info strong{color:var(--ocean);font-size:14px}
+.featured-card-info button{min-height:37px;margin-top:4px;border:0;border-radius:7px;background:var(--ocean);color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+@media(max-width:850px){.featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.featured-image{height:155px}}
+@media(max-width:520px){.home-search{padding:18px 16px 4px}.home-search-box{height:52px;padding-left:12px}.home-search-box input{font-size:12px}.home-search-box button{padding:0 13px}.featured-section{padding:30px 16px}.featured-grid{gap:10px}.featured-image{height:125px}.featured-card-info{padding:11px}.featured-heading{align-items:flex-start;flex-direction:column}}
