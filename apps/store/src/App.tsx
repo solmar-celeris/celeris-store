@@ -160,7 +160,7 @@ export default function App() {
 
     <main id="inicio">
       <section className="hero campaign-hero">
-        <div className="hero-copy"><p className="eyebrow"><i /> SOLMAR CELERIS · LOJA OFICIAL</p><h1>Vista suas ideias.<br/><em>Leve a Celeris com você.</em></h1><p className="hero-description">Produtos, lembranças e tecnologia com a identidade SolMar Celeris.</p><a className="primary-cta" href="#loja">COMPRE AGORA <span>↗</span></a><div className="hero-footnote">SOLMAR CELERIS · INOVAÇÃO EM MOVIMENTO</div></div>
+        <div className="hero-copy"><p className="eyebrow"><i /> SOLMAR CELERIS · LOJA OFICIAL</p><h1>Navegue nos melhores<br/><em>produtos e preços.</em></h1><p className="hero-description">Produtos, lembranças e tecnologia com a identidade SolMar Celeris.</p><a className="primary-cta" href="#loja">COMPRE AGORA <span>↗</span></a><div className="hero-footnote">SOLMAR CELERIS · INOVAÇÃO EM MOVIMENTO</div></div>
         <div className="hero-art" aria-label="Sacola Celeris Store"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><StoreBagLogo className="hero-bag-logo"/><div className="hero-tag tag-top">CELERIS / STORE</div><div className="hero-glow"/></div>
       </section>
 
