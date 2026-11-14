@@ -68,7 +68,7 @@ export default function App() {
 
   return <div className="store-shell">
     <header className="site-header">
-      <a className="brand" href="#inicio" aria-label="Celeris Store início"><span className="brand-mark">C</span><span className="brand-copy"><strong>CELERIS</strong><small>STORE</small></span></a>
+      <a className="brand" href="#inicio" aria-label="Celeris Store início"><img className="brand-logo" src="https://teamceleris.pages.dev/assets/solmar-celeris-site-logo.png" alt="SolMar Celeris"/><span className="brand-copy"><strong>CELERIS</strong><small>STORE</small></span></a>
       <nav className="desktop-nav"><a className="active" href="#loja">Loja</a><a href="#categorias">Categorias</a><a href="#sobre">Sobre a Celeris</a></nav>
       <div className="header-actions">
         <button className="icon-button" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} aria-label="Alternar tema">{theme === 'light' ? '☾' : '☼'}</button>
