@@ -47,8 +47,12 @@ alter table public.store_categories enable row level security;
 alter table public.store_products enable row level security;
 
 drop policy if exists "store_categories_public_read" on public.store_categories;
+drop policy if exists "store_categories_authenticated_read" on public.store_categories;
 create policy "store_categories_public_read"
-on public.store_categories for select to anon, authenticated
+on public.store_categories for select to anon
+using (is_active);
+create policy "store_categories_authenticated_read"
+on public.store_categories for select to authenticated
 using (is_active or public.has_permission('store.manage'));
 
 drop policy if exists "store_categories_admin_manage" on public.store_categories;
@@ -58,8 +62,12 @@ using (public.has_permission('store.manage'))
 with check (public.has_permission('store.manage'));
 
 drop policy if exists "store_products_public_read" on public.store_products;
+drop policy if exists "store_products_authenticated_read" on public.store_products;
 create policy "store_products_public_read"
-on public.store_products for select to anon, authenticated
+on public.store_products for select to anon
+using (is_active);
+create policy "store_products_authenticated_read"
+on public.store_products for select to authenticated
 using (is_active or public.has_permission('store.manage'));
 
 drop policy if exists "store_products_admin_manage" on public.store_products;
