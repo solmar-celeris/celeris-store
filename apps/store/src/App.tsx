@@ -19,7 +19,7 @@ function StoreBagLogo({ className = '', compact = false }: { className?: string;
     <path className="bag-body" d="M67 105h186c17 0 29 12 31 29l19 168c2 17-10 29-27 29H44c-17 0-29-12-27-29l19-168c2-17 14-29 31-29Z"/>
     <circle className="bag-handle" cx="92" cy="118" r="13" strokeWidth="10"/>
     <circle className="bag-handle" cx="228" cy="118" r="13" strokeWidth="10"/>
-    <image className="bag-logo-image" href="/celeris-store-logo.svg" x="43" y="137" width="234" height="215" preserveAspectRatio="xMidYMid meet"/>
+    <image className="bag-logo-image" href="/celeris-store-logo.svg" x="65" y="140" width="190" height="174" preserveAspectRatio="xMidYMid meet"/>
   </svg>;
 }
 
@@ -89,7 +89,7 @@ export default function App() {
     <main id="inicio">
       <section className="hero">
         <div className="hero-copy"><p className="eyebrow"><i /> A LOJA OFICIAL CELERIS</p><h1>Tecnologia, inovação<br />e <em>identidade.</em></h1><p className="hero-description">Explore os produtos e faça parte do movimento Celeris.</p><a className="primary-cta" href="#loja">Explorar produtos <span>↗</span></a><div className="hero-footnote">CELERIS · INOVAÇÃO EM MOVIMENTO</div></div>
-        <div className="hero-art" aria-label="Sacola Celeris Store"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><StoreBagLogo className="hero-bag-logo"/><div className="hero-tag tag-top">CELERIS / STORE</div><div className="hero-tag tag-bottom">DESDE A IDEIA ATÉ O MOVIMENTO</div><div className="hero-glow"/></div>
+        <div className="hero-art" aria-label="Sacola Celeris Store"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><StoreBagLogo className="hero-bag-logo"/><div className="hero-tag tag-top">CELERIS / STORE</div><div className="hero-glow"/></div>
       </section>
 
       <section className="catalog-section" id="loja">
