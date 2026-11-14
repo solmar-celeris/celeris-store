@@ -58,10 +58,11 @@ export default function App() {
 
   // Only empty the cart after the database confirms that the provider webhook marked the order as paid.
   useEffect(() => {
-    if (!supabase || !orderToVerify) return;
+    const client = supabase;
+    if (!client || !orderToVerify) return;
     let active = true;
     const verify = async () => {
-      const { data, error } = await supabase.from('store_orders').select('payment_status').eq('id', orderToVerify).maybeSingle();
+      const { data, error } = await client.from('store_orders').select('payment_status').eq('id', orderToVerify).maybeSingle();
       if (!active || error || !data) return;
       if (data.payment_status === 'paid') {
         setCart([]);
