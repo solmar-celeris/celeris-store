@@ -18,3 +18,9 @@
 /* Official Celeris Store artwork: preserve the supplied logo; invert only for dark mode. */
 .brand-mark .bag-logo-image,.hero-bag-logo .bag-logo-image{filter:none}
 :root[data-theme="dark"] .brand-mark .bag-logo-image,:root[data-theme="dark"] .hero-bag-logo .bag-logo-image{filter:invert(1)}
+
+/* Keep the original wordmark fully inside and centered on the front panel of the bag. */
+.hero-bag-logo{width:min(300px,78%);max-height:330px;overflow:visible}
+.hero-bag-logo .bag-logo-image{pointer-events:none}
+.hero-tag.tag-bottom{display:none}
+@media(max-width:720px){.hero-bag-logo{width:min(260px,78%);max-height:290px}}
