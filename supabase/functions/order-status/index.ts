@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return reply({ error: "Método não permitido." }, 405);
   try {
     const url = Deno.env.get("SUPABASE_URL")!, anon = Deno.env.get("SUPABASE_ANON_KEY")!, serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "");
+    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     if (!token) return reply({ error: "Sessão inválida." }, 401);
     const auth = createClient(url, anon, { global: { headers: { Authorization: "Bearer " + token } } });
     const { data: { user }, error } = await auth.auth.getUser();

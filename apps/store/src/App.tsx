@@ -63,7 +63,12 @@ export default function App() {
     if (!client || !orderToVerify) return;
     let active = true;
     const verify = async () => {
-      const { data, error } = await client.functions.invoke('order-status', { body: { order_id: orderToVerify } });
+      const { data: { session } } = await client.auth.getSession();
+      if (!session?.access_token) return;
+      const { data, error } = await client.functions.invoke('order-status', {
+        body: { order_id: orderToVerify },
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
       if (!active || error || !data) return;
       if (data.payment_status === 'paid') {
         setCart([]);
